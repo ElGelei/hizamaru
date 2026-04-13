@@ -8,21 +8,41 @@
   <meta name="apple-mobile-web-app-title" content="膝丸">
   <title>Hizamaru Companion</title>
   <link rel="manifest" href="manifest.json">
-  <link rel="apple-touch-icon" href="icon.svg">
+  <link rel="apple-touch-icon" href="hizamaru-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
     :root {
-      --bg:       #0a0e14;
-      --gold:     #c9a84c;
-      --teal:     #a8c8b0;
-      --teal-dim: rgba(168,200,176,0.25);
-      --text:     #e8dcc8;
-      --dim:      #5a5040;
-      --red:      #c84a4a;
+      --bg:      #f0f7f4;
+      --bg2:     #fafafa;
+      --sage:    #8ab5a0;
+      --sage-lt: rgba(138,181,160,0.18);
+      --cream:   #f5efe6;
+      --text:    #2d2d2d;
+      --dim:     #8a9a94;
+      --red:     #e07070;
+      --card:    rgba(255,255,255,0.65);
+      --shadow:  rgba(138,181,160,0.18);
     }
 
-    html, body { height: 100%; overflow: hidden; background: var(--bg); font-family: 'Georgia','Times New Roman', serif; }
+    html, body {
+      height: 100%; overflow: hidden;
+      background: var(--bg);
+      font-family: 'Nunito', sans-serif;
+      color: var(--text);
+    }
+
+    /* Soft gradient background */
+    body::before {
+      content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background:
+        radial-gradient(ellipse 80% 60% at 50% 0%,   rgba(138,181,160,0.15) 0%, transparent 65%),
+        radial-gradient(ellipse 60% 50% at 80% 100%,  rgba(245,239,230,0.6)  0%, transparent 60%),
+        radial-gradient(ellipse 50% 40% at 10% 80%,   rgba(138,181,160,0.08) 0%, transparent 55%);
+    }
 
     /* ══════════════════════════════════════
        INIT OVERLAY
@@ -31,114 +51,35 @@
       position: fixed; inset: 0; z-index: 999;
       background: var(--bg);
       display: flex; flex-direction: column;
-      align-items: center; justify-content: center; gap: 10px;
-      transition: opacity 1s ease;
+      align-items: center; justify-content: center; gap: 12px;
+      transition: opacity 0.8s ease;
     }
     #overlay.fade { opacity: 0; pointer-events: none; }
 
-    .ol-kanji { font-size: 76px; color: var(--gold); text-shadow: 0 0 60px rgba(201,168,76,0.4); animation: ol-breathe 3s ease-in-out infinite; }
-    .ol-name  { font-size: 12px; letter-spacing: 8px; color: var(--dim); text-transform: uppercase; }
-    .ol-sub   { font-size: 10px; letter-spacing: 4px; color: var(--dim); opacity: .5; margin-bottom: 28px; }
+    .ol-avatar {
+      width: 96px; height: 96px; border-radius: 28px;
+      background: var(--card);
+      backdrop-filter: blur(12px);
+      box-shadow: 0 8px 32px var(--shadow);
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 4px; overflow: hidden;
+    }
+    .ol-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .ol-name { font-size: 22px; font-weight: 700; color: var(--text); letter-spacing: 0.5px; }
+    .ol-sub  { font-size: 13px; color: var(--dim); font-weight: 500; margin-bottom: 20px; }
+
     .enter-btn {
-      padding: 12px 48px; border: 1px solid var(--gold); background: transparent;
-      color: var(--gold); font-size: 12px; letter-spacing: 5px; text-transform: uppercase;
-      cursor: pointer; transition: background .3s, box-shadow .3s; font-family: inherit;
+      padding: 14px 48px;
+      background: var(--sage); color: #fff;
+      border: none; border-radius: 50px;
+      font-family: 'Nunito', sans-serif;
+      font-size: 14px; font-weight: 700; letter-spacing: 0.5px;
+      cursor: pointer;
+      box-shadow: 0 4px 20px rgba(138,181,160,0.4);
+      transition: transform .15s, box-shadow .15s;
     }
-    .enter-btn:hover { background: rgba(201,168,76,0.07); box-shadow: 0 0 28px rgba(201,168,76,0.2); }
-
-    @keyframes ol-breathe {
-      0%,100% { opacity: .6; text-shadow: 0 0 40px rgba(201,168,76,0.3); }
-      50%      { opacity: 1;  text-shadow: 0 0 80px rgba(201,168,76,0.55); }
-    }
-
-    /* ══════════════════════════════════════
-       FIXED BACKGROUND LAYERS
-    ══════════════════════════════════════ */
-    .bg-base {
-      position: fixed; inset: 0; z-index: 0;
-      background: var(--bg);
-    }
-
-    /* Diagonal diamond pattern — Japanese aesthetic */
-    .bg-base::before {
-      content: ''; position: absolute; inset: 0; opacity: 1;
-      background-image:
-        repeating-linear-gradient(45deg,  transparent, transparent 28px, rgba(201,168,76,0.022) 28px, rgba(201,168,76,0.022) 29px),
-        repeating-linear-gradient(-45deg, transparent, transparent 28px, rgba(201,168,76,0.022) 28px, rgba(201,168,76,0.022) 29px);
-    }
-
-    /* Radial depth — teal center glow, dark edges */
-    .bg-base::after {
-      content: ''; position: absolute; inset: 0;
-      background:
-        radial-gradient(ellipse 80% 55% at 50% 38%, rgba(168,200,176,0.045) 0%, transparent 70%),
-        radial-gradient(ellipse at 50% 110%, rgba(0,0,0,0.7) 0%, transparent 55%);
-    }
-
-    /* ══════════════════════════════════════
-       SAKURA PARTICLES
-    ══════════════════════════════════════ */
-    .sakura { position: fixed; inset: 0; z-index: 1; pointer-events: none; overflow: hidden; }
-
-    .petal {
-      position: absolute; top: -20px;
-      width: 9px; height: 11px;
-      border-radius: 50% 50% 50% 0;
-      opacity: 0;
-    }
-
-    .petal::after {
-      content: ''; position: absolute;
-      width: 100%; height: 100%;
-      border-radius: 0 50% 50% 50%;
-      background: inherit;
-      transform: rotate(90deg) translateX(1px);
-    }
-
-    /* 6 petals — varied position, delay, speed, drift */
-    .petal:nth-child(1) { left: 8%;  background: rgba(255,200,215,0.50); animation: fall1 16s  2s  linear infinite; }
-    .petal:nth-child(2) { left: 22%; background: rgba(255,215,225,0.40); animation: fall2 21s  0s  linear infinite; }
-    .petal:nth-child(3) { left: 43%; background: rgba(240,190,205,0.45); animation: fall3 14s  7s  linear infinite; }
-    .petal:nth-child(4) { left: 61%; background: rgba(255,205,218,0.38); animation: fall4 19s  4s  linear infinite; }
-    .petal:nth-child(5) { left: 76%; background: rgba(245,195,210,0.48); animation: fall5 17s  1s  linear infinite; }
-    .petal:nth-child(6) { left: 90%; background: rgba(255,210,220,0.35); animation: fall6 22s  9s  linear infinite; }
-
-    @keyframes fall1 {
-      0%   { transform: translate(0,    -20px) rotate(0deg);   opacity: 0; }
-      8%   { opacity: 0.55; }
-      88%  { opacity: 0.35; }
-      100% { transform: translate(40px, 105vh) rotate(280deg); opacity: 0; }
-    }
-    @keyframes fall2 {
-      0%   { transform: translate(0,     -20px) rotate(30deg);  opacity: 0; }
-      8%   { opacity: 0.45; }
-      88%  { opacity: 0.25; }
-      100% { transform: translate(-30px, 105vh) rotate(320deg); opacity: 0; }
-    }
-    @keyframes fall3 {
-      0%   { transform: translate(0,    -20px) rotate(15deg);  opacity: 0; }
-      8%   { opacity: 0.5; }
-      88%  { opacity: 0.3; }
-      100% { transform: translate(55px, 105vh) rotate(400deg); opacity: 0; }
-    }
-    @keyframes fall4 {
-      0%   { transform: translate(0,     -20px) rotate(45deg);  opacity: 0; }
-      8%   { opacity: 0.42; }
-      88%  { opacity: 0.22; }
-      100% { transform: translate(-45px, 105vh) rotate(260deg); opacity: 0; }
-    }
-    @keyframes fall5 {
-      0%   { transform: translate(0,    -20px) rotate(60deg);  opacity: 0; }
-      8%   { opacity: 0.52; }
-      88%  { opacity: 0.32; }
-      100% { transform: translate(35px, 105vh) rotate(350deg); opacity: 0; }
-    }
-    @keyframes fall6 {
-      0%   { transform: translate(0,     -20px) rotate(10deg);  opacity: 0; }
-      8%   { opacity: 0.38; }
-      88%  { opacity: 0.18; }
-      100% { transform: translate(-55px, 105vh) rotate(300deg); opacity: 0; }
-    }
+    .enter-btn:hover  { transform: translateY(-1px); box-shadow: 0 6px 24px rgba(138,181,160,0.5); }
+    .enter-btn:active { transform: translateY(0); }
 
     /* ══════════════════════════════════════
        APP LAYOUT
@@ -149,19 +90,20 @@
       max-width: 430px; margin: 0 auto;
       display: flex; flex-direction: column; align-items: center;
       padding:
-        max(env(safe-area-inset-top), 14px)
-        0
-        max(env(safe-area-inset-bottom), 10px);
+        max(env(safe-area-inset-top), 16px)
+        20px
+        max(env(safe-area-inset-bottom), 12px);
+      gap: 0;
     }
 
     /* ── HEADER ── */
     .hdr {
-      width: 100%; text-align: center;
-      padding: 0 0 8px;
-      flex-shrink: 0;
+      width: 100%; flex-shrink: 0;
+      display: flex; flex-direction: column; align-items: center;
+      padding-bottom: 10px;
     }
-    .hdr-main { font-size: 18px; letter-spacing: 10px; color: var(--gold); text-shadow: 0 0 18px rgba(201,168,76,0.35); }
-    .hdr-sub  { font-size: 9px; letter-spacing: 4px; color: var(--dim); margin-top: 3px; text-transform: uppercase; }
+    .hdr-name { font-size: 20px; font-weight: 700; color: var(--text); }
+    .hdr-sub  { font-size: 11px; font-weight: 500; color: var(--dim); margin-top: 2px; }
 
     /* ── CHARACTER AREA ── */
     .char-area {
@@ -171,66 +113,60 @@
       position: relative;
     }
 
-    /* Outer shell — holds rings + glow + animated wrapper */
     .char-outer {
       position: relative;
       display: flex; align-items: center; justify-content: center;
       width: 100%; height: 100%;
     }
 
-    /* Audio pulse rings */
+    /* Soft sage glow behind character */
+    .char-glow {
+      position: absolute;
+      width: 280px; height: 380px;
+      border-radius: 50%;
+      background: radial-gradient(ellipse at center, rgba(138,181,160,0.28) 0%, transparent 70%);
+      opacity: 0; transition: opacity 0.8s ease;
+      pointer-events: none; filter: blur(28px);
+    }
+    .speaking .char-glow { opacity: 1; }
+
+    /* Audio rings */
     .audio-rings {
       position: absolute;
-      bottom: 8%; left: 50%;
+      bottom: 7%; left: 50%;
       transform: translateX(-50%);
       width: 140px; height: 44px;
       pointer-events: none;
     }
     .aring {
       position: absolute; inset: 0;
-      border: 1.5px solid rgba(168,200,176,0.5);
+      border: 1.5px solid rgba(138,181,160,0.55);
       border-radius: 50%; opacity: 0;
     }
     .speaking .aring:nth-child(1) { animation: aring 2.1s 0.0s ease-out infinite; }
     .speaking .aring:nth-child(2) { animation: aring 2.1s 0.7s ease-out infinite; }
     .speaking .aring:nth-child(3) { animation: aring 2.1s 1.4s ease-out infinite; }
     @keyframes aring {
-      0%   { transform: scale(0.6); opacity: 0.7; }
-      100% { transform: scale(4.5); opacity: 0;   }
+      0%   { transform: scale(0.6); opacity: 0.65; }
+      100% { transform: scale(4.5); opacity: 0; }
     }
 
-    /* Radial glow behind character */
-    .char-glow {
-      position: absolute;
-      width: 260px; height: 360px;
-      border-radius: 50%;
-      background: radial-gradient(ellipse at center, rgba(168,200,176,0.2) 0%, transparent 70%);
-      opacity: 0; transition: opacity 0.8s ease;
-      pointer-events: none; filter: blur(22px);
-    }
-    .speaking .char-glow { opacity: 1; }
-
-    /* ── PNGTUBER ANIMATED WRAPPER ──
-       Float + breathe applied here as a single unit.
-       No sub-region targeting, no nested animation wrappers. */
+    /* PNGtuber wrapper — float + breathe */
     .char-wrap {
       position: relative;
       width: min(280px, 65vw);
-      aspect-ratio: 475 / 526; /* match actual PNG dimensions */
-      animation:
-        pt-float   3s ease-in-out infinite,
-        pt-breathe 4s ease-in-out infinite;
-      /* Speaking glow via drop-shadow on the whole container */
+      aspect-ratio: 475 / 526;
+      animation: pt-float 3s ease-in-out infinite, pt-breathe 4s ease-in-out infinite;
       transition: filter 0.6s ease;
-      filter: drop-shadow(0 4px 20px rgba(168,200,176,0.0));
+      filter: drop-shadow(0 6px 18px rgba(138,181,160,0.0));
     }
     .speaking .char-wrap {
       filter:
-        drop-shadow(0 0 20px rgba(168,200,176,0.6))
-        drop-shadow(0 0 50px rgba(168,200,176,0.25));
+        drop-shadow(0 0 22px rgba(138,181,160,0.65))
+        drop-shadow(0 0 55px rgba(138,181,160,0.25));
     }
     @keyframes pt-float {
-      0%,100% { transform: translateY(0px);  }
+      0%,100% { transform: translateY(0px); }
       50%      { transform: translateY(-8px); }
     }
     @keyframes pt-breathe {
@@ -238,69 +174,72 @@
       50%      { transform: scaleX(1.010) scaleY(1.018); }
     }
 
-    /* All 3 PNG states — absolutely stacked, identical size, only opacity changes */
     .pt-img {
-      position: absolute;
-      inset: 0;
+      position: absolute; inset: 0;
       width: 100%; height: 100%;
       object-fit: contain;
-      mix-blend-mode: lighten;
+      mix-blend-mode: multiply;
       opacity: 0;
       transition: opacity 0.05s linear;
     }
-    /* idle is visible by default */
     .pt-img.visible { opacity: 1; }
 
     /* Fallback placeholder */
     .char-placeholder {
-      width: 220px; height: 320px;
-      background: linear-gradient(155deg, #1a1e2e 0%, #16203e 50%, #0f2060 100%);
+      width: 220px; height: 300px;
+      background: var(--card);
+      backdrop-filter: blur(12px);
+      border-radius: 24px;
+      box-shadow: 0 8px 32px var(--shadow);
       display: flex; flex-direction: column; align-items: center; justify-content: center;
-      gap: 10px; opacity: .4;
+      gap: 10px; opacity: .5;
     }
-    .ph-k { font-size: 90px; color: var(--gold); line-height: 1; }
-    .ph-n { font-size: 10px; letter-spacing: 6px; color: var(--dim); }
+    .ph-k { font-size: 72px; line-height: 1; }
+    .ph-n { font-size: 11px; font-weight: 600; letter-spacing: 4px; color: var(--dim); }
 
-    /* ── SUBTITLES ── */
+    /* ── SUBTITLE CARD ── */
     .sub-area {
       width: 100%; flex-shrink: 0;
-      padding: 10px 28px 6px;
-      min-height: 90px;
-      background: linear-gradient(to top, rgba(10,14,20,0.85) 0%, transparent 100%);
-      display: flex; flex-direction: column; gap: 4px;
+      background: var(--card);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-radius: 20px;
+      box-shadow: 0 4px 24px var(--shadow);
+      padding: 14px 20px 16px;
+      min-height: 88px;
+      display: flex; flex-direction: column; gap: 5px;
+      margin-bottom: 14px;
     }
 
     .sub-user {
-      font-size: 11px; font-style: italic;
+      font-size: 11px; font-style: italic; font-weight: 500;
       color: var(--dim);
-      min-height: 16px;
+      min-height: 15px;
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
       text-align: center;
     }
 
     .sub-hiza {
-      font-size: 17px; line-height: 1.7;
-      color: var(--gold);
+      font-size: 16px; line-height: 1.65; font-weight: 600;
+      color: var(--text);
       text-align: center;
-      min-height: 50px;
-      text-shadow: 0 0 20px rgba(201,168,76,0.3);
+      min-height: 48px;
     }
 
-    /* Word-by-word fade in */
     .sub-chunk {
       display: inline;
       opacity: 0;
-      animation: chunk-in 0.28s ease forwards;
+      animation: chunk-in 0.25s ease forwards;
     }
     @keyframes chunk-in {
-      from { opacity: 0; transform: translateY(3px); }
+      from { opacity: 0; transform: translateY(4px); }
       to   { opacity: 1; transform: translateY(0); }
     }
 
     /* Loading dots */
     .dots { display: inline-flex; gap: 5px; align-items: center; vertical-align: middle; }
     .dots span {
-      width: 4px; height: 4px; border-radius: 50%; background: var(--gold);
+      width: 5px; height: 5px; border-radius: 50%; background: var(--sage);
       animation: dot 1.4s ease-in-out infinite;
     }
     .dots span:nth-child(2) { animation-delay: .2s; }
@@ -310,66 +249,60 @@
     /* ── CONTROLS ── */
     .controls {
       flex-shrink: 0;
-      width: 100%; display: flex; flex-direction: column; align-items: center; gap: 8px;
-      padding: 10px 0 4px;
+      width: 100%; display: flex; flex-direction: column; align-items: center; gap: 10px;
     }
 
     .status {
-      font-size: 10px; letter-spacing: 3px; text-transform: uppercase;
-      color: var(--dim); height: 13px; transition: color .3s;
+      font-size: 11px; font-weight: 600;
+      color: var(--dim); height: 15px; transition: color .3s;
+      letter-spacing: 0.3px;
     }
-    .status.on  { color: var(--teal); }
+    .status.on  { color: var(--sage); }
     .status.err { color: var(--red);  }
 
     .mic-btn {
       width: 72px; height: 72px; border-radius: 50%;
-      border: 1.5px solid var(--gold); background: transparent;
+      border: none;
+      background: var(--sage);
       cursor: pointer; position: relative;
       display: flex; align-items: center; justify-content: center;
-      transition: border-color .2s, box-shadow .2s;
+      box-shadow: 0 4px 20px rgba(138,181,160,0.45);
+      transition: transform .15s, box-shadow .15s, background .2s;
       -webkit-tap-highlight-color: transparent; touch-action: none; user-select: none;
     }
-    .mic-btn::before {
-      content: ''; position: absolute; inset: 6px; border-radius: 50%;
-      background: rgba(201,168,76,0.05); transition: all .2s;
-    }
+    .mic-btn:hover  { transform: scale(1.05); box-shadow: 0 6px 26px rgba(138,181,160,0.55); }
+    .mic-btn:active { transform: scale(0.97); }
     .mic-btn.rec {
-      border-color: var(--red);
-      box-shadow: 0 0 26px rgba(200,74,74,.4);
+      background: var(--red);
+      box-shadow: 0 4px 22px rgba(224,112,112,0.45);
+      animation: mic-pulse 1s ease-in-out infinite;
     }
-    .mic-btn.rec::before { background: rgba(200,74,74,.15); transform: scale(1.1); }
-    .mic-btn:disabled { opacity: .2; cursor: default; }
+    @keyframes mic-pulse {
+      0%,100% { box-shadow: 0 4px 22px rgba(224,112,112,0.45); }
+      50%      { box-shadow: 0 4px 32px rgba(224,112,112,0.7); }
+    }
+    .mic-btn:disabled { opacity: .35; cursor: default; transform: none; }
 
-    .mic-icon { width: 24px; height: 24px; fill: var(--gold); position: relative; z-index: 1; transition: fill .2s; }
-    .mic-btn.rec .mic-icon { fill: var(--red); }
+    .mic-icon { width: 26px; height: 26px; fill: #fff; position: relative; z-index: 1; }
 
-    .btn-hint { font-size: 9px; letter-spacing: 2px; color: var(--dim); text-transform: uppercase; }
+    .btn-hint { font-size: 11px; font-weight: 500; color: var(--dim); }
   </style>
 </head>
 <body>
 
 <!-- Init overlay -->
 <div id="overlay">
-  <div class="ol-kanji">膝丸</div>
+  <div class="ol-avatar"><img src="hizamaru-icon.png" alt="Hizamaru" onerror="this.parentElement.textContent='🗡️'"></div>
   <div class="ol-name">Hizamaru</div>
-  <div class="ol-sub">源氏之太刀 · TOUKEN RANBU</div>
-  <button class="enter-btn" id="enter-btn">進入 · Enter</button>
-</div>
-
-<!-- Background -->
-<div class="bg-base"></div>
-
-<!-- Sakura petals -->
-<div class="sakura">
-  <div class="petal"></div><div class="petal"></div><div class="petal"></div>
-  <div class="petal"></div><div class="petal"></div><div class="petal"></div>
+  <div class="ol-sub">Minamoto Tachi · Touken Ranbu</div>
+  <button class="enter-btn" id="enter-btn">Start chatting</button>
 </div>
 
 <!-- App -->
 <div id="app">
   <header class="hdr">
-    <div class="hdr-main">膝 丸</div>
-    <div class="hdr-sub">HIZAMARU · MINAMOTO TACHI</div>
+    <div class="hdr-name">Hizamaru</div>
+    <div class="hdr-sub">Minamoto Tachi</div>
   </header>
 
   <div class="char-area">
@@ -406,7 +339,7 @@
         <path d="M12 1a4 4 0 0 1 4 4v6a4 4 0 0 1-8 0V5a4 4 0 0 1 4-4zm0 2a2 2 0 0 0-2 2v6a2 2 0 0 0 4 0V5a2 2 0 0 0-2-2zm-7 9a7 7 0 0 0 14 0h2a9 9 0 0 1-8 8.94V23h-2v-2.06A9 9 0 0 1 3 12h2z"/>
       </svg>
     </button>
-    <div class="btn-hint">長按說話</div>
+    <div class="btn-hint">Hold to speak</div>
   </div>
 </div>
 
@@ -731,7 +664,7 @@ async function playFirstMessage() {
   S.processing = true;
   $micBtn.disabled = true;
   showDots();
-  setStatus('膝丸說話中…', 'on');
+  setStatus('Speaking…', 'on');
 
   try {
     const tts = new TTS();
@@ -760,7 +693,7 @@ async function playFirstMessage() {
   setSpeaking(false);
   S.processing = false;
   $micBtn.disabled = false;
-  setStatus('準備完畢');
+  setStatus('Ready');
 }
 
 // ═══════════════════════════════════════════
@@ -774,15 +707,15 @@ async function pipeline() {
 
   try {
     const blob = await stopRecording();
-    if (!blob || blob.size < 800) { setStatus('未偵測到語音'); return; }
+    if (!blob || blob.size < 800) { setStatus('No audio detected'); return; }
 
-    setStatus('辨識語音…', 'on');
+    setStatus('Transcribing…', 'on');
     const userText = await whisper(blob);
-    if (!userText) { setStatus('無法辨識'); return; }
+    if (!userText) { setStatus('Could not transcribe'); return; }
 
-    $userLine.textContent = `「${userText}」`;
+    $userLine.textContent = `"${userText}"`;
     showDots();
-    setStatus('膝丸思考中…', 'on');
+    setStatus('Thinking…', 'on');
 
     const tts = new TTS();
     await tts.connect();
@@ -791,7 +724,7 @@ async function pipeline() {
     let ttsBuf = '';
     $hizaLine.innerHTML = '';
     setSpeaking(true);
-    setStatus('膝丸說話中…', 'on');
+    setStatus('Speaking…', 'on');
 
     for await (const chunk of streamClaude(userText)) {
       fullReply += chunk;
@@ -818,13 +751,13 @@ async function pipeline() {
 
   } catch (e) {
     console.error('pipeline:', e);
-    setStatus('發生錯誤', 'err');
+    setStatus('Something went wrong', 'err');
     $hizaLine.innerHTML = '';
   } finally {
     setSpeaking(false);
     S.processing = false;
     $micBtn.disabled = false;
-    if ($status.classList.contains('on')) setStatus('準備完畢');
+    if ($status.classList.contains('on')) setStatus('Ready');
   }
 }
 
@@ -844,8 +777,8 @@ async function startRecording() {
     S.mediaRec.start(100);
     S.recording = true;
     $micBtn.classList.add('rec');
-    setStatus('聆聽中…', 'on');
-  } catch (e) { console.error('mic:', e); setStatus('麥克風錯誤', 'err'); }
+    setStatus('Listening…', 'on');
+  } catch (e) { console.error('mic:', e); setStatus('Microphone error', 'err'); }
 }
 
 function stopRecording() {
@@ -882,7 +815,7 @@ $enterBtn.addEventListener('click', async () => {
   initAnalyser();
   $overlay.classList.add('fade');
   setTimeout(() => { $overlay.style.display = 'none'; }, 900);
-  setStatus('連接中…', 'on');
+  setStatus('Connecting…', 'on');
 
   // Fetch ElevenLabs credentials from server
   try {
@@ -892,8 +825,8 @@ $enterBtn.addEventListener('click', async () => {
   } catch (e) { console.warn('el-config:', e); }
 
   if (!CFG.EL_KEY || !CFG.EL_VOICE) {
-    setStatus('請設定 Vercel 環境變數', 'err');
-    $hizaLine.textContent = '尚未設定 API 金鑰。請在 Vercel 加入環境變數後重新部署。';
+    setStatus('Missing API keys', 'err');
+    $hizaLine.textContent = 'Please add environment variables in Vercel and redeploy.';
     $micBtn.disabled = false;
     return;
   }
@@ -907,7 +840,7 @@ $enterBtn.addEventListener('click', async () => {
   } else {
     const last = [...S.history].reverse().find(m => m.role === 'assistant');
     if (last) $hizaLine.textContent = last.content;
-    setStatus('準備完畢');
+    setStatus('Ready');
     $micBtn.disabled = false;
   }
 });
