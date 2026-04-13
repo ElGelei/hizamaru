@@ -1,4 +1,4 @@
-const CACHE = 'hizamaru-v1';
+const CACHE = 'hizamaru-v3';
 const ASSETS = ['/', '/index.html', '/manifest.json', '/icon.svg'];
 
 self.addEventListener('install', e => {
