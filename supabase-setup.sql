@@ -17,5 +17,7 @@ CREATE TABLE IF NOT EXISTS messages (
 ALTER TABLE sessions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE messages ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "anon_all_sessions" ON sessions;
+DROP POLICY IF EXISTS "anon_all_messages" ON messages;
 CREATE POLICY "anon_all_sessions" ON sessions FOR ALL TO anon USING (true) WITH CHECK (true);
 CREATE POLICY "anon_all_messages" ON messages FOR ALL TO anon USING (true) WITH CHECK (true);
