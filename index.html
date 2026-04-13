@@ -171,139 +171,87 @@
       position: relative;
     }
 
-    /* Outer container — lean transition when speaking */
+    /* Outer shell — holds rings + glow + animated wrapper */
     .char-outer {
       position: relative;
-      display: flex; align-items: flex-end; justify-content: center;
-      height: 100%; width: 100%;
-      transition: transform 0.6s ease;
+      display: flex; align-items: center; justify-content: center;
+      width: 100%; height: 100%;
     }
-    .char-outer.lean { transform: translateY(-4px); }
 
-    /* Audio pulse rings — ellipses rising from feet */
+    /* Audio pulse rings */
     .audio-rings {
       position: absolute;
-      bottom: 0; left: 50%;
+      bottom: 8%; left: 50%;
       transform: translateX(-50%);
-      width: 120px; height: 40px;
+      width: 140px; height: 44px;
       pointer-events: none;
     }
     .aring {
       position: absolute; inset: 0;
       border: 1.5px solid rgba(168,200,176,0.5);
-      border-radius: 50%;
-      opacity: 0;
+      border-radius: 50%; opacity: 0;
     }
-    .speaking .aring:nth-child(1) { animation: aring 2.1s 0s    ease-out infinite; }
-    .speaking .aring:nth-child(2) { animation: aring 2.1s 0.7s  ease-out infinite; }
-    .speaking .aring:nth-child(3) { animation: aring 2.1s 1.4s  ease-out infinite; }
-
+    .speaking .aring:nth-child(1) { animation: aring 2.1s 0.0s ease-out infinite; }
+    .speaking .aring:nth-child(2) { animation: aring 2.1s 0.7s ease-out infinite; }
+    .speaking .aring:nth-child(3) { animation: aring 2.1s 1.4s ease-out infinite; }
     @keyframes aring {
-      0%   { transform: scale(0.6);  opacity: 0.7; }
-      100% { transform: scale(4.5);  opacity: 0;   }
+      0%   { transform: scale(0.6); opacity: 0.7; }
+      100% { transform: scale(4.5); opacity: 0;   }
     }
 
-    /* Glow halo behind character — teal, only when speaking */
+    /* Radial glow behind character */
     .char-glow {
       position: absolute;
-      bottom: 0; left: 50%;
-      transform: translateX(-50%);
-      width: 200px; height: 300px;
+      width: 260px; height: 360px;
       border-radius: 50%;
-      background: radial-gradient(ellipse at center, rgba(168,200,176,0.22) 0%, transparent 70%);
-      opacity: 0;
-      transition: opacity 0.8s ease;
-      pointer-events: none;
-      filter: blur(20px);
+      background: radial-gradient(ellipse at center, rgba(168,200,176,0.2) 0%, transparent 70%);
+      opacity: 0; transition: opacity 0.8s ease;
+      pointer-events: none; filter: blur(22px);
     }
     .speaking .char-glow { opacity: 1; }
 
-    /* Breathing wrapper — must propagate height for max-height: 100% on img */
-    .char-breathe {
-      height: 100%;
-      display: flex; align-items: flex-end; justify-content: center;
-      animation: breathe 4s ease-in-out infinite;
-      transform-origin: center bottom;
-    }
-
-    /* Floating wrapper */
-    .char-float {
+    /* ── PNGTUBER ANIMATED WRAPPER ──
+       Float + breathe applied here as a single unit.
+       No sub-region targeting, no nested animation wrappers. */
+    .char-wrap {
       position: relative;
-      display: flex; align-items: flex-end; justify-content: center;
-      height: 100%;
-      animation: float 3s ease-in-out infinite;
+      width: min(280px, 65vw);
+      aspect-ratio: 475 / 526; /* match actual PNG dimensions */
+      animation:
+        pt-float   3s ease-in-out infinite,
+        pt-breathe 4s ease-in-out infinite;
+      /* Speaking glow via drop-shadow on the whole container */
+      transition: filter 0.6s ease;
+      filter: drop-shadow(0 4px 20px rgba(168,200,176,0.0));
     }
-
-    @keyframes breathe {
-      0%,100% { transform: scale(1.000); }
-      50%      { transform: scale(1.018); }
+    .speaking .char-wrap {
+      filter:
+        drop-shadow(0 0 20px rgba(168,200,176,0.6))
+        drop-shadow(0 0 50px rgba(168,200,176,0.25));
     }
-    @keyframes float {
+    @keyframes pt-float {
       0%,100% { transform: translateY(0px);  }
       50%      { transform: translateY(-8px); }
     }
-
-    /* PNGtuber — both images stacked, opacity crossfade */
-    .pngtuber {
-      position: relative;
-      display: flex; align-items: flex-end; justify-content: center;
-      max-height: 100%; max-width: 90vw;
+    @keyframes pt-breathe {
+      0%,100% { transform: scaleX(1.000) scaleY(1.000); }
+      50%      { transform: scaleX(1.010) scaleY(1.018); }
     }
 
-    .char-img-idle,
-    .char-img-speak {
-      display: block;
-      max-height: 100%;
-      max-width: 90vw;
-      width: auto;
-      object-fit: contain;
-      object-position: center bottom;
-      mix-blend-mode: lighten;
-      transition: opacity 0.05s linear, filter 0.7s ease;
-      filter: drop-shadow(0 4px 16px rgba(168,200,176,0.0));
-    }
-
-    /* Speaking image sits on top, hidden by default */
-    .char-img-speak {
+    /* All 3 PNG states — absolutely stacked, identical size, only opacity changes */
+    .pt-img {
       position: absolute;
       inset: 0;
       width: 100%; height: 100%;
       object-fit: contain;
-      object-position: center bottom;
+      mix-blend-mode: lighten;
       opacity: 0;
+      transition: opacity 0.05s linear;
     }
+    /* idle is visible by default */
+    .pt-img.visible { opacity: 1; }
 
-    /* When .mouth-open is on the pngtuber wrapper */
-    .pngtuber.mouth-open .char-img-idle  { opacity: 0; }
-    .pngtuber.mouth-open .char-img-speak { opacity: 1; }
-
-    /* Glow applies to the whole wrapper when speaking */
-    .speaking .char-img-idle,
-    .speaking .char-img-speak {
-      filter:
-        drop-shadow(0 0 18px rgba(168,200,176,0.55))
-        drop-shadow(0 0 40px rgba(168,200,176,0.25));
-    }
-
-    /* Blink overlay — positioned at eye level */
-    .blink-cover {
-      position: absolute;
-      top: 20%; left: 22%; right: 22%;
-      height: 0;
-      background: linear-gradient(to bottom,
-        transparent 0%,
-        rgba(10,14,20,0.92) 50%,
-        transparent 100%);
-      border-radius: 50%;
-      pointer-events: none;
-      z-index: 5;
-      transition: height 0.07s ease-in-out;
-    }
-    .blinking .blink-cover {
-      height: 5%;
-    }
-
-    /* Fallback placeholder when hizamaru.png is missing */
+    /* Fallback placeholder */
     .char-placeholder {
       width: 220px; height: 320px;
       background: linear-gradient(155deg, #1a1e2e 0%, #16203e 50%, #0f2060 100%);
@@ -426,24 +374,17 @@
 
   <div class="char-area">
     <div class="char-outer" id="char-outer">
-      <!-- Glow halo (behind character) -->
-      <div class="char-glow" id="char-glow"></div>
-      <!-- Audio rings (at feet) -->
-      <div class="audio-rings" id="audio-rings">
+      <div class="char-glow"></div>
+      <div class="audio-rings">
         <div class="aring"></div><div class="aring"></div><div class="aring"></div>
       </div>
-      <!-- Breathing → floating → image -->
-      <div class="char-breathe" id="char-breathe">
-        <div class="char-float" id="char-float">
-          <div class="pngtuber" id="pngtuber">
-            <img src="hizamaru-idle.png"    class="char-img-idle"  id="char-idle"  alt="Hizamaru"
-                 onerror="this.style.display='none';document.getElementById('char-ph').style.display='flex'">
-            <img src="hizamaru-speaking.png" class="char-img-speak" id="char-speak" alt="Hizamaru speaking">
-          </div>
-          <div class="blink-cover" id="blink-cover"></div>
-        </div>
+      <!-- Single animated wrapper — float + breathe applied here -->
+      <div class="char-wrap" id="char-wrap">
+        <img id="pt-idle"  class="pt-img visible" src="hizamaru-idle.png"     alt="Hizamaru"
+             onerror="this.style.display='none';document.getElementById('char-ph').style.display='flex'">
+        <img id="pt-speak" class="pt-img"         src="hizamaru-speaking.png" alt="">
+        <img id="pt-blink" class="pt-img"         src="hizamaru-blink.png"    alt="">
       </div>
-      <!-- Fallback placeholder -->
       <div class="char-placeholder" id="char-ph" style="display:none">
         <div class="ph-k">刀</div>
         <div class="ph-n">HIZAMARU</div>
@@ -486,9 +427,10 @@ const CFG = {
 // ═══════════════════════════════════════════
 const S = {
   audioCtx:    null,
-  analyser:    null,   // AnalyserNode for mouth detection
-  analyserBuf: null,   // Uint8Array for getByteFrequencyData
-  mouthRaf:    null,   // requestAnimationFrame id for mouth loop
+  analyser:    null,
+  analyserBuf: null,
+  mouthRaf:    null,
+  blinkTimer:  null,
   sessionId:   localStorage.getItem('hiza_session') || null,
   history:     [],
   summary:     '',
@@ -508,22 +450,23 @@ const S = {
 const $overlay   = document.getElementById('overlay');
 const $enterBtn  = document.getElementById('enter-btn');
 const $charOuter = document.getElementById('char-outer');
-const $pngtuber  = document.getElementById('pngtuber');
-const $breathe   = document.getElementById('char-breathe');
 const $userLine  = document.getElementById('user-line');
 const $hizaLine  = document.getElementById('hiza-line');
 const $status    = document.getElementById('status');
 const $micBtn    = document.getElementById('mic-btn');
 
+// PNGtuber image elements
+const $ptIdle  = document.getElementById('pt-idle');
+const $ptSpeak = document.getElementById('pt-speak');
+const $ptBlink = document.getElementById('pt-blink');
+
 function setStatus(msg, cls = '') {
   $status.textContent = msg;
   $status.className = 'status' + (cls ? ' ' + cls : '');
 }
-
 function showDots() {
   $hizaLine.innerHTML = '<span class="dots"><span></span><span></span><span></span></span>';
 }
-
 function addChunk(text) {
   const span = document.createElement('span');
   span.className = 'sub-chunk';
@@ -531,39 +474,40 @@ function addChunk(text) {
   $hizaLine.appendChild(span);
 }
 
-function setSpeaking(on) {
-  S.speaking = on;
-  $charOuter.classList.toggle('speaking', on);
-  $charOuter.classList.toggle('lean', on);
-  if (on) startMouthLoop();
-  else    stopMouthLoop();
+// ═══════════════════════════════════════════
+//  3-STATE PNGTUBER
+// ═══════════════════════════════════════════
+
+// States: 'idle' | 'speaking' | 'blink'
+// Only opacity changes — never size or position.
+
+function showState(state) {
+  $ptIdle .classList.toggle('visible', state === 'idle');
+  $ptSpeak.classList.toggle('visible', state === 'speaking');
+  $ptBlink.classList.toggle('visible', state === 'blink');
 }
 
-// ── MOUTH DETECTION ──────────────────────────
-const MOUTH_THRESHOLD = 18; // 0-255 RMS, tune if needed
+// ── Analyser (mouth detection) ──
+const MOUTH_THRESHOLD = 0.01; // normalised 0–1 RMS
 
 function initAnalyser() {
   if (S.analyser) return;
-  S.analyser    = S.audioCtx.createAnalyser();
+  S.analyser = S.audioCtx.createAnalyser();
   S.analyser.fftSize = 256;
-  S.analyser.smoothingTimeConstant = 0.6;
-  S.analyserBuf = new Uint8Array(S.analyser.frequencyBinCount);
+  S.analyser.smoothingTimeConstant = 0.5;
+  S.analyserBuf = new Float32Array(S.analyser.fftSize);
   S.analyser.connect(S.audioCtx.destination);
-}
-
-function setMouth(open) {
-  if ($pngtuber) $pngtuber.classList.toggle('mouth-open', open);
 }
 
 function startMouthLoop() {
   if (S.mouthRaf) return;
   const tick = () => {
-    if (!S.speaking) { S.mouthRaf = null; setMouth(false); return; }
-    S.analyser.getByteFrequencyData(S.analyserBuf);
+    if (!S.speaking) { S.mouthRaf = null; return; }
+    S.analyser.getFloatTimeDomainData(S.analyserBuf);
     let sum = 0;
-    for (let i = 0; i < S.analyserBuf.length; i++) sum += S.analyserBuf[i];
-    const rms = sum / S.analyserBuf.length;
-    setMouth(rms > MOUTH_THRESHOLD);
+    for (let i = 0; i < S.analyserBuf.length; i++) sum += S.analyserBuf[i] * S.analyserBuf[i];
+    const rms = Math.sqrt(sum / S.analyserBuf.length);
+    showState(rms > MOUTH_THRESHOLD ? 'speaking' : 'idle');
     S.mouthRaf = requestAnimationFrame(tick);
   };
   S.mouthRaf = requestAnimationFrame(tick);
@@ -571,21 +515,39 @@ function startMouthLoop() {
 
 function stopMouthLoop() {
   if (S.mouthRaf) { cancelAnimationFrame(S.mouthRaf); S.mouthRaf = null; }
-  setMouth(false);
 }
 
-// ═══════════════════════════════════════════
-//  IDLE BLINK  (random 4–6s interval)
-// ═══════════════════════════════════════════
+// ── Speaking state ──
+function setSpeaking(on) {
+  S.speaking = on;
+  $charOuter.classList.toggle('speaking', on);
+  if (on) {
+    stopBlink();
+    startMouthLoop();
+  } else {
+    stopMouthLoop();
+    showState('idle');
+    scheduleBlink();
+  }
+}
+
+// ── Blink (idle only, never during speaking) ──
 function scheduleBlink() {
+  clearTimeout(S.blinkTimer);
   const delay = 4000 + Math.random() * 2000;
-  setTimeout(() => {
-    $breathe.classList.add('blinking');
+  S.blinkTimer = setTimeout(() => {
+    if (S.speaking) { scheduleBlink(); return; }
+    showState('blink');
     setTimeout(() => {
-      $breathe.classList.remove('blinking');
+      if (!S.speaking) showState('idle');
       scheduleBlink();
-    }, 180);
+    }, 150);
   }, delay);
+}
+
+function stopBlink() {
+  clearTimeout(S.blinkTimer);
+  S.blinkTimer = null;
 }
 
 // ═══════════════════════════════════════════
