@@ -382,6 +382,7 @@ class TTS {
         this.ws.send(JSON.stringify({
           text: ' ',
           xi_api_key: CFG.EL_KEY,
+          language_code: 'zh',
           voice_settings: { stability: 0.55, similarity_boost: 0.80, style: 0.20, use_speaker_boost: true },
           generation_config: { chunk_length_schedule: [80, 160, 250] },
         }));
