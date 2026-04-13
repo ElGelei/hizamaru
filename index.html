@@ -218,16 +218,20 @@
     }
     .speaking .char-glow { opacity: 1; }
 
-    /* Breathing wrapper */
+    /* Breathing wrapper — must propagate height for max-height: 100% on img */
     .char-breathe {
+      height: 100%;
+      display: flex; align-items: flex-end; justify-content: center;
       animation: breathe 4s ease-in-out infinite;
       transform-origin: center bottom;
     }
 
     /* Floating wrapper */
     .char-float {
-      animation: float 3s ease-in-out infinite;
       position: relative;
+      display: flex; align-items: flex-end; justify-content: center;
+      height: 100%;
+      animation: float 3s ease-in-out infinite;
     }
 
     @keyframes breathe {
@@ -854,6 +858,13 @@ $enterBtn.addEventListener('click', async () => {
     CFG.EL_KEY   = cfg.apiKey;
     CFG.EL_VOICE = cfg.voiceId;
   } catch (e) { console.warn('el-config:', e); }
+
+  if (!CFG.EL_KEY || !CFG.EL_VOICE) {
+    setStatus('請設定 Vercel 環境變數', 'err');
+    $hizaLine.textContent = '尚未設定 API 金鑰。請在 Vercel 加入環境變數後重新部署。';
+    $micBtn.disabled = false;
+    return;
+  }
 
   await sbInit();
 
