@@ -243,19 +243,43 @@
       50%      { transform: translateY(-8px); }
     }
 
-    #char-img {
+    /* PNGtuber — both images stacked, opacity crossfade */
+    .pngtuber {
+      position: relative;
+      display: flex; align-items: flex-end; justify-content: center;
+      max-height: 100%; max-width: 90vw;
+    }
+
+    .char-img-idle,
+    .char-img-speak {
       display: block;
       max-height: 100%;
       max-width: 90vw;
       width: auto;
       object-fit: contain;
       object-position: center bottom;
-      /* mix-blend-mode drops white/light background on dark canvas */
       mix-blend-mode: lighten;
-      transition: filter 0.7s ease;
+      transition: opacity 0.05s linear, filter 0.7s ease;
       filter: drop-shadow(0 4px 16px rgba(168,200,176,0.0));
     }
-    .speaking #char-img {
+
+    /* Speaking image sits on top, hidden by default */
+    .char-img-speak {
+      position: absolute;
+      inset: 0;
+      width: 100%; height: 100%;
+      object-fit: contain;
+      object-position: center bottom;
+      opacity: 0;
+    }
+
+    /* When .mouth-open is on the pngtuber wrapper */
+    .pngtuber.mouth-open .char-img-idle  { opacity: 0; }
+    .pngtuber.mouth-open .char-img-speak { opacity: 1; }
+
+    /* Glow applies to the whole wrapper when speaking */
+    .speaking .char-img-idle,
+    .speaking .char-img-speak {
       filter:
         drop-shadow(0 0 18px rgba(168,200,176,0.55))
         drop-shadow(0 0 40px rgba(168,200,176,0.25));
@@ -411,8 +435,11 @@
       <!-- Breathing → floating → image -->
       <div class="char-breathe" id="char-breathe">
         <div class="char-float" id="char-float">
-          <img src="hizamaru.png" id="char-img" alt="Hizamaru"
-               onerror="this.style.display='none';document.getElementById('char-ph').style.display='flex'">
+          <div class="pngtuber" id="pngtuber">
+            <img src="hizamaru-idle.png"    class="char-img-idle"  id="char-idle"  alt="Hizamaru"
+                 onerror="this.style.display='none';document.getElementById('char-ph').style.display='flex'">
+            <img src="hizamaru-speaking.png" class="char-img-speak" id="char-speak" alt="Hizamaru speaking">
+          </div>
           <div class="blink-cover" id="blink-cover"></div>
         </div>
       </div>
@@ -458,18 +485,21 @@ const CFG = {
 //  STATE
 // ═══════════════════════════════════════════
 const S = {
-  audioCtx:   null,
-  sessionId:  localStorage.getItem('hiza_session') || null,
-  history:    [],
-  summary:    '',
-  exchanges:  0,
-  recording:  false,
-  processing: false,
-  speaking:   false,
-  mediaRec:   null,
-  chunks:     [],
-  nextPlayAt: 0,
-  activeSrcs: [],
+  audioCtx:    null,
+  analyser:    null,   // AnalyserNode for mouth detection
+  analyserBuf: null,   // Uint8Array for getByteFrequencyData
+  mouthRaf:    null,   // requestAnimationFrame id for mouth loop
+  sessionId:   localStorage.getItem('hiza_session') || null,
+  history:     [],
+  summary:     '',
+  exchanges:   0,
+  recording:   false,
+  processing:  false,
+  speaking:    false,
+  mediaRec:    null,
+  chunks:      [],
+  nextPlayAt:  0,
+  activeSrcs:  [],
 };
 
 // ═══════════════════════════════════════════
@@ -478,7 +508,7 @@ const S = {
 const $overlay   = document.getElementById('overlay');
 const $enterBtn  = document.getElementById('enter-btn');
 const $charOuter = document.getElementById('char-outer');
-const $charImg   = document.getElementById('char-img');
+const $pngtuber  = document.getElementById('pngtuber');
 const $breathe   = document.getElementById('char-breathe');
 const $userLine  = document.getElementById('user-line');
 const $hizaLine  = document.getElementById('hiza-line');
@@ -505,6 +535,43 @@ function setSpeaking(on) {
   S.speaking = on;
   $charOuter.classList.toggle('speaking', on);
   $charOuter.classList.toggle('lean', on);
+  if (on) startMouthLoop();
+  else    stopMouthLoop();
+}
+
+// ── MOUTH DETECTION ──────────────────────────
+const MOUTH_THRESHOLD = 18; // 0-255 RMS, tune if needed
+
+function initAnalyser() {
+  if (S.analyser) return;
+  S.analyser    = S.audioCtx.createAnalyser();
+  S.analyser.fftSize = 256;
+  S.analyser.smoothingTimeConstant = 0.6;
+  S.analyserBuf = new Uint8Array(S.analyser.frequencyBinCount);
+  S.analyser.connect(S.audioCtx.destination);
+}
+
+function setMouth(open) {
+  if ($pngtuber) $pngtuber.classList.toggle('mouth-open', open);
+}
+
+function startMouthLoop() {
+  if (S.mouthRaf) return;
+  const tick = () => {
+    if (!S.speaking) { S.mouthRaf = null; setMouth(false); return; }
+    S.analyser.getByteFrequencyData(S.analyserBuf);
+    let sum = 0;
+    for (let i = 0; i < S.analyserBuf.length; i++) sum += S.analyserBuf[i];
+    const rms = sum / S.analyserBuf.length;
+    setMouth(rms > MOUTH_THRESHOLD);
+    S.mouthRaf = requestAnimationFrame(tick);
+  };
+  S.mouthRaf = requestAnimationFrame(tick);
+}
+
+function stopMouthLoop() {
+  if (S.mouthRaf) { cancelAnimationFrame(S.mouthRaf); S.mouthRaf = null; }
+  setMouth(false);
 }
 
 // ═══════════════════════════════════════════
@@ -673,7 +740,8 @@ class TTS {
       const decoded = await S.audioCtx.decodeAudioData(buf.slice(0));
       const src = S.audioCtx.createBufferSource();
       src.buffer = decoded;
-      src.connect(S.audioCtx.destination);
+      // Route through analyser so mouth detection sees the audio signal
+      src.connect(S.analyser);
       const now = S.audioCtx.currentTime;
       if (S.nextPlayAt < now) S.nextPlayAt = now;
       src.start(S.nextPlayAt);
@@ -849,6 +917,7 @@ $micBtn.addEventListener('touchcancel', onRelease, { passive: false });
 $enterBtn.addEventListener('click', async () => {
   S.audioCtx   = new (window.AudioContext || window.webkitAudioContext)();
   S.nextPlayAt = 0;
+  initAnalyser();
   $overlay.classList.add('fade');
   setTimeout(() => { $overlay.style.display = 'none'; }, 900);
   setStatus('連接中…', 'on');
