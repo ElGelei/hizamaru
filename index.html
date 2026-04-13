@@ -250,7 +250,8 @@
       width: auto;
       object-fit: contain;
       object-position: center bottom;
-      /* Speaking glow via filter */
+      /* mix-blend-mode drops white/light background on dark canvas */
+      mix-blend-mode: lighten;
       transition: filter 0.7s ease;
       filter: drop-shadow(0 4px 16px rgba(168,200,176,0.0));
     }
